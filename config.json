@@ -4,6 +4,9 @@
         "port": 8080
     },
     "database": {
-        "url": "${DB_URL}"
+        "url": "${DB_URL}",
+        "user": "${POSTGRES_USER}",
+        "password": "${POSTGRES_PASSWORD}",
+        "db_name": "${POSTGRES_DB}"
     }
 }

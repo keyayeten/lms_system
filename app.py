@@ -1,3 +1,5 @@
+import asyncio
+
 from robyn import Robyn, logger
 from core.db import Base, engine
 from core.settings import settings
@@ -8,18 +10,30 @@ app = Robyn(__file__)
 app.include_router(router)
 
 
-@app.startup()
 async def init_db():
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    except Exception as exc:
-        logger.error(f"DATABASE UNAVAILAIBLE: {exc}")
+    retries = 10
+    while retries:
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Database connected and initialized successfully.")
+            break
+        except Exception as exc:
+            retries -= 1
+            logger.error(f"DATABASE UNAVAILAIBLE: {exc}. Retrying in 3 seconds...")
+            await asyncio.sleep(3)
 
 
 @app.get("/")
 def index():
     return "Hello World!"
+
+
+async def on_startup():
+    await init_db()
+
+
+app.startup_handler(on_startup)
 
 
 if __name__ == "__main__":

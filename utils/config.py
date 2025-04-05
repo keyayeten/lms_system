@@ -65,6 +65,6 @@ class DefaultSettings(BaseSettings):
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
         return (
             EnvSettingsSource(settings_cls),
-            JsonConfigSettingsSource(settings_cls, json_file="app/config.json"),
+            JsonConfigSettingsSource(settings_cls, json_file="config.json"),
             DotEnvSettingsSource(settings_cls, env_file=".env"),
         )
