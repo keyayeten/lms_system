@@ -7,7 +7,7 @@ WORKDIR /app
 COPY content_parser/requirements.txt content_parser/requirements.txt
 RUN pip install --no-cache-dir -r content_parser/requirements.txt
 
-ENV PYTHONPATH="/app/"
+ENV PYTHONPATH="/app/content_parser"
 ENV APP_DIR="/app/content_parser/"
 ENV APP_BIN="${APP_DIR}app.py"
 

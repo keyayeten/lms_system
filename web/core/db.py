@@ -8,7 +8,6 @@ from core.settings import settings
 
 DATABASE_URL = settings.database.url
 
-print(DATABASE_URL)
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 

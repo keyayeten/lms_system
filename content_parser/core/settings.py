@@ -2,9 +2,10 @@ from pydantic import BaseModel, Field
 from utils.config import DefaultSettings
 
 
-class AppSettings(BaseModel):
-    host: str = Field(...)
-    port: int = Field(...)
+class RabbiMQSettings(BaseModel):
+    rabbit_url: str = Field(...)
+    rabbit_host: str = Field(...)
+    rabbit_port: int = Field(...)
 
 
 class PostgeSettings(BaseModel):
@@ -17,7 +18,7 @@ class PostgeSettings(BaseModel):
 class Settings(DefaultSettings):
     DEBUG: bool = False
 
-    app: AppSettings
+    rabbit: RabbiMQSettings
     database: PostgeSettings
 
     class Config:
