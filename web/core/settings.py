@@ -7,6 +7,12 @@ class AppSettings(BaseModel):
     port: int = Field(...)
 
 
+class RabbiMQSettings(BaseModel):
+    rabbit_url: str = Field(...)
+    rabbit_host: str = Field(...)
+    rabbit_port: int = Field(...)
+
+
 class PostgeSettings(BaseModel):
     url: str = Field(...)
     user: str = Field(...)
@@ -19,6 +25,7 @@ class Settings(DefaultSettings):
 
     app: AppSettings
     database: PostgeSettings
+    rabbit: RabbiMQSettings
 
     class Config:
         extra = "ignore"

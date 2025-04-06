@@ -8,5 +8,10 @@
         "user": "${POSTGRES_USER}",
         "password": "${POSTGRES_PASSWORD}",
         "db_name": "${POSTGRES_DB}"
+    },
+    "rabbit": {
+        "rabbit_url": "${RABBIT_URL}",
+        "rabbit_host": "${RABBIT_HOST}",
+        "rabbit_port": "${RABBIT_PORT}"
     }
 }
