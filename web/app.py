@@ -2,6 +2,7 @@ import asyncio
 
 from robyn import Robyn, logger
 from core.db import Base, engine
+from core.rabbit import init_rabbitmq
 from core.settings import settings
 from routes.router import router
 
@@ -31,6 +32,7 @@ def index():
 
 async def on_startup():
     await init_db()
+    await init_rabbitmq()
 
 
 app.startup_handler(on_startup)
