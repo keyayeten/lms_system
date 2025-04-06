@@ -1,14 +1,13 @@
-import json
-import os
-from typing import Any, Tuple, Type
-
 from dotenv import load_dotenv
+from typing import Any, Type, Tuple
 from pydantic_settings import (
     BaseSettings,
     DotEnvSettingsSource,
     EnvSettingsSource,
     PydanticBaseSettingsSource,
 )
+import os
+import json
 
 
 class JsonConfigSettingsSource(PydanticBaseSettingsSource):
@@ -18,7 +17,6 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
         self._config_data = self._load_json_config()
 
     def _load_json_config(self) -> dict:
-        """Load and resolve JSON configuration from the file."""
         try:
             with open(self.json_file, "r") as file:
                 raw_config = json.load(file)
@@ -29,9 +27,6 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
             )
 
     def _resolve_env_variables(self, value: Any) -> Any:
-        """Resolve placeholders like ${ENV_VAR} in the JSON values."""
-        load_dotenv()
-
         if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
             env_var = value[2:-1]
             return os.getenv(env_var, value)
@@ -42,29 +37,24 @@ class JsonConfigSettingsSource(PydanticBaseSettingsSource):
         return value
 
     def __call__(self) -> dict:
-        """Return the entire configuration data."""
         return self._config_data
 
-    def get_field_value(self, field: str) -> Any:
-        """Get a specific field value using dot notation."""
-        keys = field.split(".")
-        value = self._config_data
-        try:
-            for key in keys:
-                value = value[key]
-            return value
-        except KeyError:
-            return None
+    def get_field_value(self, field_name: str, field: Any) -> Any:
+        return self._config_data.get(field_name, None)
 
 
 class DefaultSettings(BaseSettings):
-
     @classmethod
     def settings_customise_sources(
         cls, settings_cls: Type[BaseSettings], **kwargs
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        env_path = getattr(settings_cls.Config, "env_path", "app/.env")
+        config_path = getattr(settings_cls.Config, "config_path", "app/config.json")
+
+        load_dotenv(env_path)
+
         return (
             EnvSettingsSource(settings_cls),
-            JsonConfigSettingsSource(settings_cls, json_file="config.json"),
-            DotEnvSettingsSource(settings_cls, env_file=".env"),
+            DotEnvSettingsSource(settings_cls, env_file=env_path),
+            JsonConfigSettingsSource(settings_cls, json_file=config_path),
         )

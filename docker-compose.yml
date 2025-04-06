@@ -1,13 +1,16 @@
-version: '3.9'
-
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: web/Dockerfile
     container_name: robyn_app
     ports:
-      - "5000:5000"
+      - "8080:8080"
     depends_on:
       - db
+    volumes:
+      - ./web:/app/web
+      - ./utils:/app/utils
 
   db:
     image: postgres:15
