@@ -20,12 +20,18 @@ class PostgeSettings(BaseModel):
     db_name: str = Field(...)
 
 
+class AuthSettings(BaseModel):
+    secret_key: str = Field(...)
+    algorithm: str = Field(...)
+
+
 class Settings(DefaultSettings):
     DEBUG: bool = False
 
     app: AppSettings
     database: PostgeSettings
     rabbit: RabbiMQSettings
+    auth: AuthSettings
 
     class Config:
         extra = "ignore"

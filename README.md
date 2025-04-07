@@ -31,6 +31,8 @@ POSTGRES_DB=lmsdb
 RABBIT_URL="amqp://guest:guest@rabbitmq:5672/"
 RABBIT_HOST=rabbitmq
 RABBIT_PORT=5672
+SECRET_KEY=your_secret
+ALGORITHM=HS256
 ```
 - Запуск осуществляется командой ```docker-compose up --build -d```
 

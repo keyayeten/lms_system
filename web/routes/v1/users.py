@@ -1,25 +1,14 @@
 from robyn import SubRouter, jsonify, Request
 
 from core.db import get_session
-from services.users import create_user, get_user, get_all_users, delete_user
+from services.users import get_user, get_all_users, delete_user
 
 
 users = SubRouter(__file__, prefix="/users")
 
 
-@users.post("/")
-async def create_user_route(request: Request):
-    data = request.json()
-    name = data.get("name")
-    email = data.get("email")
-
-    async for session in get_session():
-        user = await create_user(session, name, email)
-        return jsonify({"id": user.id, "name": user.name, "email": user.email})
-
-
-@users.get("/")
-async def list_users(request):
+@users.get("/", auth_required=True)
+async def list_users(request: Request):
     async for session in get_session():
         users = await get_all_users(session)
         return jsonify([
@@ -28,7 +17,7 @@ async def list_users(request):
 
 
 @users.get("/:id")
-async def get_user_route(request):
+async def get_user_route(request: Request):
     user_id = int(request.path_params["id"])
     async for session in get_session():
         user = await get_user(session, user_id)
@@ -38,7 +27,7 @@ async def get_user_route(request):
 
 
 @users.delete("/:id")
-async def delete_user_route(request):
+async def delete_user_route(request: Request):
     user_id = int(request.path_params["id"])
     async for session in get_session():
         success = await delete_user(session, user_id)

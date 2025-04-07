@@ -1,6 +1,8 @@
 import asyncio
 
 from robyn import Robyn, logger
+from robyn.authentication import BearerGetter
+from core.auth import BasicAuthHandler
 from core.db import Base, engine
 from core.rabbit import init_rabbitmq
 from core.settings import settings
@@ -8,6 +10,8 @@ from routes.router import router
 
 
 app = Robyn(__file__)
+
+app.configure_authentication(BasicAuthHandler(token_getter=BearerGetter()))
 app.include_router(router)
 
 
