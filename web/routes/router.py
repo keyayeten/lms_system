@@ -1,7 +1,7 @@
-from robyn import SubRouter
+from fastapi import APIRouter
 
-from routes.v1.routes import router as v1_router
+from web.routes.v1.routes import router as v1_router
 
 
-router = SubRouter(__file__)
+router = APIRouter(prefix="/api")
 router.include_router(v1_router)

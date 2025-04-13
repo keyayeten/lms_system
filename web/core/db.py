@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 from typing import AsyncGenerator
 
-from core.settings import settings
+from web.core.settings import settings
 
 
 DATABASE_URL = settings.database.url

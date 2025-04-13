@@ -1,10 +1,10 @@
-from robyn import SubRouter
+from fastapi import APIRouter
 
-from routes.v1.users import users as users_route
-from routes.v1.auth import auth as auth_route
+from web.routes.v1.users import users as users_route
+from web.routes.v1.auth import auth as auth_route
 
 
-router = SubRouter(__file__)
+router = APIRouter(prefix="/v1")
 
 router.include_router(users_route)
 router.include_router(auth_route)

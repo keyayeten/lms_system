@@ -1,20 +1,34 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
-RUN apt-get update && apt-get install -y build-essential
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
+# Создаём рабочую директорию
 WORKDIR /app
 
-COPY web/requirements.txt web/requirements.txt
-RUN pip install --no-cache-dir -r web/requirements.txt
+# Копируем и устанавливаем зависимости Python
+COPY ./web/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PYTHONPATH="/app/"
-ENV APP_DIR="/app/web/"
-ENV APP_BIN="${APP_DIR}app.py"
+# Альтернативно, можно использовать psycopg2-binary вместо psycopg2
+# RUN sed -i 's/psycopg2/psycopg2-binary/' requirements.txt && \
+#     pip install --no-cache-dir -r requirements.txt
 
-COPY web web
-COPY utils utils
+# Устанавливаем переменные окружения
+ENV PYTHONPATH="/app"
+ENV APP_MODULE="web.app:app"
+ENV APP_HOST="0.0.0.0"
+ENV APP_PORT=8080
 
+# Копируем исходный код
+COPY ./web ./web
+COPY ./utils ./utils
 
-EXPOSE 8080
+# Открываем порт
+EXPOSE ${APP_PORT}
 
-CMD python ${APP_BIN}
+# Запускаем приложение с помощью uvicorn
+CMD uvicorn --host ${APP_HOST} --port ${APP_PORT} ${APP_MODULE}

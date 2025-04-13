@@ -1,13 +1,13 @@
-from robyn import SubRouter, Request
-from robyn.exceptions import HTTPException
+from fastapi import APIRouter, Request
+from fastapi.exceptions import HTTPException
 from sqlalchemy.future import select
 
-from core.db import get_session
-from core.security import get_password_hash, verify_password, create_access_token
-from models.users import User
+from web.core.db import get_session
+from web.core.security import get_password_hash, verify_password, create_access_token
+from web.models.users import User
 
 
-auth = SubRouter(__file__, prefix="/auth")
+auth = APIRouter(prefix="/auth")
 
 
 @auth.post("/users/register")

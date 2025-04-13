@@ -1,19 +1,19 @@
-from robyn import SubRouter, jsonify, Request
+from fastapi import APIRouter, Request
 
-from core.db import get_session
-from services.users import get_user, get_all_users, delete_user
-
-
-users = SubRouter(__file__, prefix="/users")
+from web.core.db import get_session
+from web.services.users import get_user, get_all_users, delete_user
 
 
-@users.get("/", auth_required=True)
+users = APIRouter(prefix="/users")
+
+
+@users.get("/")
 async def list_users(request: Request):
     async for session in get_session():
         users = await get_all_users(session)
-        return jsonify([
+        return [
             {"id": u.id, "name": u.name, "email": u.email} for u in users
-        ])
+        ]
 
 
 @users.get("/:id")
@@ -22,7 +22,7 @@ async def get_user_route(request: Request):
     async for session in get_session():
         user = await get_user(session, user_id)
         if user:
-            return jsonify({"id": user.id, "name": user.name, "email": user.email})
+            return {"id": user.id, "name": user.name, "email": user.email}
         return {"error": "User not found"}, 404
 
 

@@ -1,9 +1,9 @@
 import aio_pika
 import asyncio
 from aio_pika import RobustConnection, RobustChannel
-from robyn import logger
+from loguru import logger
 from utils.rabbit_utils.wait_for_connection import wait_for_rabbitmq
-from core.settings import settings
+from web.core.settings import settings
 
 
 rabbitmq_connection: RobustConnection = None

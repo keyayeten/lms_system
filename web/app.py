@@ -1,18 +1,11 @@
 import asyncio
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from loguru import logger
 
-from robyn import Robyn, logger
-from robyn.authentication import BearerGetter
-from core.auth import BasicAuthHandler
-from core.db import Base, engine
-from core.rabbit import init_rabbitmq
-from core.settings import settings
-from routes.router import router
-
-
-app = Robyn(__file__)
-
-app.configure_authentication(BasicAuthHandler(token_getter=BearerGetter()))
-app.include_router(router)
+from web.routes.router import router
+from web.core.db import Base, engine
+from web.core.rabbit import init_rabbitmq
 
 
 async def init_db():
@@ -29,19 +22,19 @@ async def init_db():
             await asyncio.sleep(3)
 
 
-@app.get("/")
-def index():
-    return "Hello World!"
-
-
-async def on_startup():
+@asynccontextmanager
+async def lifespan(span: FastAPI):
     await init_db()
     await init_rabbitmq()
+    yield
 
 
-app.startup_handler(on_startup)
+app = FastAPI(
+    lifespan=lifespan
+)
+app.include_router(router)
 
 
-if __name__ == "__main__":
-    logger.info(f"application startup on host={settings.app.host}, port={settings.app.port}")
-    app.start(host=settings.app.host, port=settings.app.port)
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
