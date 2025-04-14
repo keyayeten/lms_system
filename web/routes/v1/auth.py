@@ -1,57 +1,69 @@
-from fastapi import APIRouter, Request
-from fastapi.exceptions import HTTPException
-from sqlalchemy.future import select
+from datetime import timedelta
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from web.core.db import get_session
-from web.core.security import get_password_hash, verify_password, create_access_token
-from web.models.users import User
+from web.core.settings import settings
+from web.core.security import (
+    get_password_hash,
+    verify_password,
+)
+from web.core.auth import create_access_token
+from web.schemas.users import (
+    UserCreateSchema,
+    UserResponseSchema,
+    TokenSchema,
+    UserLoginSchema
+)
+from web.services.dependencies import get_user_service
+from web.services.users_service import UserService
 
 
 auth = APIRouter(prefix="/auth")
 
 
-@auth.post("/users/register")
-async def register_user(request: Request):
-    user_data = request.json()
-    async for session in get_session():
-        # Проверка на существующего пользователя по email
-        stmt = select(User).where(User.email == user_data["email"])
-        result = await session.execute(stmt)
-        existing_user = result.scalars().first()
-
-        if existing_user:
-            raise HTTPException(status_code=400, detail="User already exists")
-
-        # Хешируем пароль и создаём пользователя
-        hashed_password = get_password_hash(user_data["password"])
-        user = User(
-            name=user_data["name"],
-            email=user_data["email"],
-            hashed_password=hashed_password
+# Auth endpoints
+@auth.post("/register", response_model=UserResponseSchema)
+async def register_user(
+    user_data: UserCreateSchema,
+    user_service: UserService = Depends(get_user_service)
+):
+    """
+    Register new user
+    """
+    existing_user = await user_service.get_user_by_email(user_data.email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
         )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
 
-        return {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email
-        }
+    hashed_password = get_password_hash(user_data.password)
+    user = await user_service.create_user(
+        name=user_data.name,
+        email=user_data.email,
+        hashed_password=hashed_password
+    )
+    return user
 
 
-@auth.post("/users/login")
-async def login_user(request: Request):
-    user_data = request.json()
-    async for session in get_session():
-        # Поиск по email
-        stmt = select(User).where(User.email == user_data["email"])
-        result = await session.execute(stmt)
-        user = result.scalars().first()
+@auth.post("/login", response_model=TokenSchema)
+async def login_user(
+    login_data: UserLoginSchema,
+    user_service: UserService = Depends(get_user_service)
+):
+    """
+    Login user and get access token
+    """
+    user = await user_service.get_user_by_email(login_data.email)
+    if not user or not verify_password(login_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-        if not user or not verify_password(user_data["password"], user.hashed_password):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-
-        # Создание JWT-токена по email
-        token = create_access_token({"sub": user.email})
-        return {"access_token": token}
+    access_token_expires = timedelta(minutes=settings.auth.access_token_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": user.email},
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}

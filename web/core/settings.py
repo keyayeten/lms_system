@@ -23,6 +23,7 @@ class PostgeSettings(BaseModel):
 class AuthSettings(BaseModel):
     secret_key: str = Field(...)
     algorithm: str = Field(...)
+    access_token_expire_minutes: int = Field(...)
 
 
 class Settings(DefaultSettings):
