@@ -1,6 +1,6 @@
 import aio_pika
 import asyncio
-from aio_pika import RobustConnection, RobustChannel
+from aio_pika import RobustConnection, RobustChannel, Message
 from loguru import logger
 from utils.rabbit_utils.wait_for_connection import wait_for_rabbitmq
 from web.core.settings import settings
@@ -33,3 +33,20 @@ async def init_rabbitmq():
             retries -= 1
             logger.error(f"RABBITMQ UNAVAILABLE: {exc}. Retrying in 3 seconds...")
             await asyncio.sleep(3)
+
+
+async def close_rabbitmq():
+    if rabbitmq_connection:
+        await rabbitmq_connection.close()
+        logger.info("RabbitMQ connection closed.")
+
+
+async def publish_message(routing_key: str, body: bytes, exchange_name: str = ""):
+    if not rabbitmq_channel:
+        raise RuntimeError("RabbitMQ not initialized.")
+
+    message = Message(body)
+    await rabbitmq_channel.default_exchange.publish(
+        message,
+        routing_key=routing_key
+    )
