@@ -3,6 +3,7 @@ from faststream.rabbit import RabbitBroker
 from sqlalchemy import text
 from core.settings import settings
 from core.db import engine
+from core.redis_ import init_redis
 
 from utils.rabbit_utils.wait_for_connection import wait_for_rabbitmq
 
@@ -24,6 +25,7 @@ async def wait_for_database():
 async def startup():
     wait_for_rabbitmq(rabbit_host, rabbit_port)
     await wait_for_database()
+    await init_redis()
 
 # === FastStream App ===
 

@@ -15,11 +15,21 @@ class PostgeSettings(BaseModel):
     db_name: str = Field(...)
 
 
+class RedisSettings(BaseModel):
+    redis_host: str = Field(...)
+    redis_port: int = Field(...)
+
+    @property
+    def redis_url(self):
+        return f"redis://{self.redis_host}:{self.redis_port}"
+
+
 class Settings(DefaultSettings):
     DEBUG: bool = False
 
     rabbit: RabbiMQSettings
     database: PostgeSettings
+    redis: RedisSettings
 
     class Config:
         extra = "ignore"

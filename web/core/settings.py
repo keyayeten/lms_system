@@ -26,6 +26,15 @@ class AuthSettings(BaseModel):
     access_token_expire_minutes: int = Field(...)
 
 
+class RedisSettings(BaseModel):
+    redis_host: str = Field(...)
+    redis_port: int = Field(...)
+
+    @property
+    def redis_url(self):
+        return f"redis://{self.redis_host}:{self.redis_port}"
+
+
 class Settings(DefaultSettings):
     DEBUG: bool = False
 
@@ -33,6 +42,7 @@ class Settings(DefaultSettings):
     database: PostgeSettings
     rabbit: RabbiMQSettings
     auth: AuthSettings
+    redis: RedisSettings
 
     class Config:
         extra = "ignore"

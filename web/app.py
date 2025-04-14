@@ -5,7 +5,8 @@ from loguru import logger
 
 from web.routes.router import router
 from web.core.db import Base, engine
-from web.core.rabbit import init_rabbitmq
+from web.core.rabbit import init_rabbitmq, close_rabbitmq
+from web.core.redis_ import init_redis, close_redis
 
 
 async def init_db():
@@ -18,15 +19,26 @@ async def init_db():
             break
         except Exception as exc:
             retries -= 1
-            logger.error(f"DATABASE UNAVAILAIBLE: {exc}. Retrying in 3 seconds...")
+            logger.error(f"DATABASE UNAVAILABLE: {exc}. Retrying in 3 seconds...")
             await asyncio.sleep(3)
 
 
 @asynccontextmanager
-async def lifespan(span: FastAPI):
+async def lifespan(app: FastAPI):
+    logger.info("Initializing services...")
+
     await init_db()
     await init_rabbitmq()
-    yield
+    await init_redis()
+
+    logger.info("All services initialized.")
+    try:
+        yield
+    finally:
+        logger.info("Shutting down services...")
+        await close_rabbitmq()
+        await close_redis()
+        logger.info("All services shut down.")
 
 
 app = FastAPI(
